@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.effect.ColorAdjust?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.Light.Point?>
+<?import javafx.scene.effect.Lighting?>
+<?import javafx.scene.effect.Shadow?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="597.0" prefWidth="700" style="-fx-background-color: transparent" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ZomboidJavaHook.ui.ModsDialogController">
+    <AnchorPane layoutX="30.0" layoutY="19.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#onMouseMove" onMousePressed="#onMousePress" prefHeight="559.0" prefWidth="640.0" styleClass="root">
+       <HBox alignment="TOP_CENTER" minHeight="-Infinity" minWidth="-Infinity" prefWidth="640.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+           <ImageView cache="true" fitHeight="112.0" fitWidth="299.0">
+               <image>
+                   <Image url="@title.png" />
+               </image>
+             <effect>
+                <ColorAdjust brightness="-0.47" contrast="0.17" saturation="1.0">
+                   <input>
+                      <Lighting diffuseConstant="0.98" specularConstant="0.92" specularExponent="2.28" surfaceScale="3.22">
+                         <bumpInput>
+                            <Shadow height="5.86" radius="0.9650000000000001" width="0.0">
+                               <color>
+                                  <Color red="1.0" green="1.0" blue="1.0" />
+                               </color>
+                            </Shadow>
+                         </bumpInput>
+                         <light>
+                            <Light.Point x="3.0" y="3.0" z="3.0" />
+                         </light>
+                      </Lighting>
+                   </input>
+                </ColorAdjust>
+             </effect>
+           </ImageView>
+       </HBox>
+       <ScrollPane layoutX="15.0" layoutY="479.0" prefHeight="30.0" prefWidth="328.0" style="-fx-vbar-policy: never; -fx-background-color: transparent; -fx-border-color: transparent;" AnchorPane.bottomAnchor="44.0" AnchorPane.leftAnchor="15.0">
+          <tooltip>
+              <Tooltip fx:id="toolTip" text="You may only enable this if java has been enabled for all mods" />
+          </tooltip>
+          <content>
+              <CheckBox fx:id="rememberChoices" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="17.0" prefWidth="276.0" text="Don't ask me again unless files change" />
+          </content>
+       </ScrollPane>
+        <ScrollPane layoutX="15.0" layoutY="116.0" onMouseDragged="#onMouseMove" onMousePressed="#onMousePress" prefHeight="340.0" prefWidth="610.0" AnchorPane.bottomAnchor="103.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="116.0">
+            <AnchorPane minHeight="0.0" minWidth="0.0" onMouseDragged="#onMouseMove" onMousePressed="#onMousePress" styleClass="scroll-pane-anchor">
+                <VBox fx:id="detectedMods" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseDragged="#onMouseMove" onMousePressed="#onMousePress" />
+            </AnchorPane>
+        </ScrollPane>
+        <Button layoutX="519.0" layoutY="436.0" mnemonicParsing="false" onAction="#onOK" prefHeight="30.0" prefWidth="107.0" styleClass="ok-button" text="OK" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="14.0">
+          <effect>
+             <DropShadow height="35.0" radius="17.0" width="35.0">
+                <color>
+                   <Color green="0.6973684430122375" blue="0.7894737124443054" />
+                </color>
+             </DropShadow>
+          </effect></Button>
+        <Button layoutX="404.0" layoutY="436.0" mnemonicParsing="false" onAction="#onCancel" prefHeight="30.0" prefWidth="107.0" styleClass="abort-button" text="Abort" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="129.0" />
+      <effect>
+         <DropShadow height="35.0" radius="17.0" spread="0.17" width="35.0" />
+      </effect>
+    </AnchorPane>
+</AnchorPane>

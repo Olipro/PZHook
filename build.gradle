@@ -1,0 +1,152 @@
+import static org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC
+import static org.apache.tools.ant.taskdefs.condition.Os.FAMILY_UNIX
+import static org.apache.tools.ant.taskdefs.condition.Os.isFamily
+
+plugins {
+    id 'java'
+    id 'application'
+    id "org.panteleyev.jpackageplugin" version "1.3.1"
+    id "nebula.lint" version "17.6.1"
+    id 'org.openjfx.javafxplugin' version '0.0.11'
+    id "org.ajoberstar.grgit" version "4.1.1"
+}
+
+group 'ZomboidJavaHook'
+version '1.0-SNAPSHOT'
+
+gradleLint.rules = ['all-dependency']
+
+def PZGameFolder = 'C:/Program Files (x86)/Steam/steamapps/common/ProjectZomboid/'
+if (isFamily(FAMILY_UNIX)) {
+    PZGameFolder = '~/.local/share/steam/steamapps/common/ProjectZomboid/projectzomboid/'
+} else if (isFamily(FAMILY_MAC)) {
+    PZGameFolder = '~/Library/Application Support/Steam/steamapps/common/Project Zomboid.app/Contents/Java/'
+}
+
+javafx {
+    version = "17.0.2"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+tasks.run.workingDir = PZGameFolder
+
+configurations {
+    devOnly
+}
+
+repositories {
+    mavenCentral()
+}
+
+compileJava {
+    options.release = 15
+}
+
+dependencies {
+    implementation group: 'net.uptheinter', name: 'interceptify', version: '1.0.1'
+    implementation group: 'jakarta.json', name: 'jakarta.json-api', version: '2.0.0'
+    implementation group: 'jakarta.json.bind', name: 'jakarta.json.bind-api', version: '2.0.0'
+    implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '3.0.1'
+    runtimeOnly group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '3.0.2'
+    runtimeOnly group: 'org.eclipse', name: 'yasson', version: '2.0.4'
+    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:win"
+    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:linux"
+    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:mac"
+
+    compileOnly files(PZGameFolder)
+    devOnly files(
+            PZGameFolder + "istack-commons-runtime.jar",
+            PZGameFolder + "jassimp.jar",
+            PZGameFolder + "javacord-2.0.17-shaded.jar",
+            PZGameFolder + "javax.activation-api.jar",
+            PZGameFolder + "jaxb-api.jar",
+            PZGameFolder + "jaxb-runtime.jar",
+            PZGameFolder + "lwjgl.jar",
+            PZGameFolder + "lwjgl-natives-windows.jar",
+            PZGameFolder + "lwjgl-glfw.jar",
+            PZGameFolder + "lwjgl-glfw-natives-windows.jar",
+            PZGameFolder + "lwjgl-jemalloc.jar",
+            PZGameFolder + "lwjgl-jemalloc-natives-windows.jar",
+            PZGameFolder + "lwjgl-opengl.jar",
+            PZGameFolder + "lwjgl-opengl-natives-windows.jar",
+            PZGameFolder + "lwjgl_util.jar",
+            PZGameFolder + "sqlite-jdbc-3.27.2.1.jar",
+            PZGameFolder + "trove-3.0.3.jar",
+            PZGameFolder + "uncommons-maths-1.2.3.jar")
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes('Premain-Class' : 'net.uptheinter.interceptify.EntryPoint',
+                'Agent-Class' : 'net.uptheinter.interceptify.EntryPoint',
+                'Main-Class': 'ZomboidJavaHook.Main',
+                'Can-Redefine-Classes': 'true',
+                'Can-Retransform-Classes': 'true',
+                'Can-Set-Native-Method-Prefix' : 'true',
+        )
+    }
+    from {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        configurations.runtimeClasspath.filter{!it.isDirectory()}.collect {
+            zipTree(it)
+        }
+    }
+}
+
+application {
+    mainClass = 'ZomboidJavaHook.Main'
+    applicationDefaultJvmArgs = ["-Djava.awt.headless=true",
+                                 "-Xms1800m",
+                                 "-Xmx4096m",
+                                 "-Dzomboid.steam=1",
+                                 "-Dzomboid.znetlog=1",
+                                 "-Djava.library.path=win64/;.",
+                                 "-XX:+UseZGC",
+                                 "-javaagent:" + jar.archiveFileName.get(),
+    ]
+}
+
+tasks.run {
+    classpath += files(PZGameFolder)
+    classpath += configurations.devOnly
+}
+
+task deljpackage(type: Delete, group: 'distribution') {
+    delete "$buildDir/dist"
+}
+
+tasks.jpackage {
+    doFirst {
+        deljpackage
+    }
+    dependsOn = ['jar', 'deljpackage']
+    appVersion = '1.0.0'
+    input  = "$buildDir/libs"
+    destination = "$buildDir/dist"
+    type = 'app-image'
+    icon = layout.projectDirectory.dir('src/main/resources/ZomboidJavaHook/ui/icon.ico')
+
+    appName = "ZomboidJavaHook"
+
+    mainJar = jar.archiveFileName.get()
+    mainClass = "ZomboidJavaHook.Main"
+
+    javaOptions = ["-Dfile.encoding=UTF-8"]
+
+    windows {
+        winConsole = false
+    }
+}
+
+task zipjpackage(type: Zip, group: 'distribution') {
+    dependsOn jpackage
+    archiveFileName = 'ZomboidJavaHook' + (System.getenv('ARCHIVE_NAME') ?: '') + '.zip'
+    destinationDirectory = layout.buildDirectory
+    from layout.buildDirectory.dir('dist')
+}
+
+test {
+    useJUnitPlatform()
+}

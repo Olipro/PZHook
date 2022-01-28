@@ -1,0 +1,41 @@
+name: Snapshot Pipeline
+
+on:
+  push:
+    branches-ignore: ['github', 'javadoc']
+    tags-ignore: ['*']
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  Windows:
+    name: Windows Snapshot
+    if: ${{ !contains(github.event.head_commit.message, '[CI Skip]') }}
+    uses: Olipro/PZHook/.github/workflows/ci.yml@github
+    with:
+      isRelease: false
+      target: windows-latest
+      archive: '-Win64'
+    secrets:
+      GITHUBTOKEN: ${{secrets.GITHUB_TOKEN}}
+  Linux:
+    name: Linux Snapshot
+    if: ${{ !contains(github.event.head_commit.message, '[CI Skip]') }}
+    uses: Olipro/PZHook/.github/workflows/ci.yml@github
+    with:
+      isRelease: false
+      target: ubuntu-latest
+      archive: '-Linux64'
+    secrets:
+      GITHUBTOKEN: ${{secrets.GITHUB_TOKEN}}
+  Mac:
+    name: MacOS Snapshot
+    if: ${{ !contains(github.event.head_commit.message, '[CI Skip]') }}
+    uses: Olipro/PZHook/.github/workflows/ci.yml@github
+    with:
+      isRelease: false
+      target: macos-latest
+      archive: '-MacOS'
+    secrets:
+      GITHUBTOKEN: ${{secrets.GITHUB_TOKEN}}

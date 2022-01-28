@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+def PZGameFolder = 'C:/Program Files (x86)/Steam/steamapps/common/ProjectZomboid/'
+
+java {
+    sourceCompatibility = 1.15
+}
+
+group 'org.Example'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+// You will need to first build ZomboidJavaHook (or have downloaded it and changed this path)
+dependencies {
+    compileOnly files(PZGameFolder)
+    compileOnly fileTree('../build/libs')
+}
+
+test {
+    useJUnitPlatform()
+}
