@@ -1,0 +1,63 @@
+name: CI Master Script
+
+on:
+  workflow_call:
+    inputs:
+      isRelease:
+        required: true
+        type: boolean
+      target:
+        required: true
+        type: string
+      archive:
+        required: true
+        type: string
+    secrets:
+      GITHUBTOKEN:
+        required: true
+
+jobs:
+  Pipeline:
+    runs-on: ${{inputs.target}}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2.4.0
+        with:
+          ref: ${{github.ref}}
+          fetch-depth: '0'
+      - name: Install JDK
+        uses: actions/setup-java@v2.5.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Validate Gradle
+        uses: gradle/wrapper-validation-action@v1.0.4
+      - name: Build Zomboid Java Hook
+        uses: gradle/gradle-build-action@v2.1.0
+        with:
+          arguments: build --info
+      - name: Test ZomboidJavaHook
+        uses: gradle/gradle-build-action@v2.1.0
+        with:
+          arguments: test
+      - name: Package ZomboidJavaHook
+        uses: gradle/gradle-build-action@v2.1.0
+        with:
+          arguments: zipjpackage --info
+        env:
+          ARCHIVE_NAME: ${{inputs.archive}}
+      - name: Draft Release
+        if: ${{inputs.isRelease && github.ref_name != github.event.repository.default_branch}}
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          draft: true
+          files: ${{ format('{0}{1}{2}', 'build/ZomboidJavaHook', inputs.archive, '.zip') }}
+          token: ${{secrets.GITHUBTOKEN}}
+      - name: Draft Snapshot
+        if: ${{!inputs.isRelease && github.ref_name == github.event.repository.default_branch}}
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          draft: true
+          prerelease: true
+          files: ${{ format('{0}{1}{2}', 'build/ZomboidJavaHook', inputs.archive, '.zip') }}
+          token: ${{secrets.GITHUBTOKEN}}
