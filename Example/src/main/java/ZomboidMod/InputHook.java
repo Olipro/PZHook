@@ -9,7 +9,7 @@ import zombie.input.ControllerState;
 import java.lang.reflect.Method;
 
 @InterceptClass("zombie.core.input.Input")
-public class InputHook {
+public class InputHook extends Input {
 
     @OverwriteConstructor
     public static void construct(Input input) throws Throwable {

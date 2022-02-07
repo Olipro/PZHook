@@ -21,11 +21,17 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class HookConfig implements StartupConfig {
-    private final Set<ModData> mods = initMods();
+    private final Set<ModData> mods;
     private boolean userCancelled;
     private boolean rememberNextTime;
 
-    public HookConfig() throws ClassNotFoundException {}
+    public HookConfig(boolean skipInit) {
+        mods = skipInit ? new HashSet<>() : initMods();
+    }
+
+    public HookConfig() throws ClassNotFoundException {
+        mods = initMods();
+    }
 
     public boolean isUserCancelled() {
         return userCancelled;
@@ -123,6 +129,11 @@ public class HookConfig implements StartupConfig {
 
     public Set<ModData> getMods() {
         return mods;
+    }
+
+    @Override
+    public boolean shouldMakePublic(String cls) {
+        return cls.startsWith("zombie");
     }
 
     @Override

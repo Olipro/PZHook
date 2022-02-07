@@ -1,11 +1,11 @@
 plugins {
-    id 'java'
+    id 'java-library'
 }
 
 def PZGameFolder = 'C:/Program Files (x86)/Steam/steamapps/common/ProjectZomboid/'
 
 java {
-    sourceCompatibility = 1.15
+    sourceCompatibility = 15
 }
 
 group 'org.Example'
@@ -15,9 +15,17 @@ repositories {
     mavenCentral()
 }
 
+// You can execute this gradle task to have ZomboidJavaHook generate the JAR
+// with all classes, methods and fields made public. Obviously the hook's filename
+// must match what is below and java needs to be on your PATH environment variable.
+task generatePZJar(type: Exec, group: 'build') {
+    workingDir PZGameFolder
+    commandLine 'java', '-jar', 'ZomboidJavaHook.jar', '--make-public'
+}
+
 // You will need to first build ZomboidJavaHook (or have downloaded it and changed this path)
 dependencies {
-    compileOnly files(PZGameFolder)
+    compileOnly files(PZGameFolder + 'zombie.jar')
     compileOnly fileTree('../build/libs')
 }
 

@@ -3,6 +3,7 @@ package ZomboidJavaHook.ui;
 import ZomboidJavaHook.config.HookConfig;
 import ZomboidJavaHook.config.ModData;
 import ZomboidJavaHook.config.TrustedDigests;
+import ZomboidJavaHook.dev.GameCodePubliciser;
 import ZomboidJavaHook.installer.HookInstaller;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -13,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.uptheinter.interceptify.EntryPoint;
+import net.uptheinter.interceptify.internal.RuntimeHook;
 import net.uptheinter.interceptify.util.Util;
 
 import java.io.IOException;
@@ -29,14 +31,6 @@ public class UIManager extends Application {
     private static final URL modsDialog = UIManager.class.getResource("ModsDialog.fxml");
     private static final URL gameLocatorDialog = UIManager.class.getResource("GameLocatorDialog.fxml");
 
-    static {
-        try {
-            cfg = new HookConfig();
-        } catch (ClassNotFoundException e) {
-            // not running from game dir, no problem.
-        }
-    }
-
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         var listArgs = Arrays.asList(args);
         if (listArgs.contains("--help")) {
@@ -45,8 +39,25 @@ public class UIManager extends Application {
 Project Zomboid Java Hook:
 --i-trust-all-mods : loads any Java it finds and runs completely silently.
                      Intended for servers and the foolhardy.
+--make-public      : Modifies all classes, interfaces and enums in the game
+                     to have public, non-final visibility, dumps them into
+                     the file zombie.jar and terminates - This is intended for
+                     use in your own project, if you need it. The hook modifies
+                     all classes at runtime to be public so it will match what
+                     you code against.
 --help             : prints this help message and terminates""");
             return;
+        }
+        if (listArgs.contains("--make-public")) {
+            try (var gcp = new GameCodePubliciser()) {
+                gcp.dumpCode();
+            }
+            return;
+        }
+        try {
+            cfg = new HookConfig();
+        } catch (ClassNotFoundException e) {
+            // not running from game dir, no problem.
         }
         if (cfg != null && (listArgs.contains("--i-trust-all-mods") ||
                 (Files.exists(TrustedDigests.trustDir.resolve(skipCheck)) &&

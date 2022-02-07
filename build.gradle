@@ -43,15 +43,15 @@ compileJava {
 }
 
 dependencies {
-    implementation group: 'net.uptheinter', name: 'interceptify', version: '1.0.1'
+    implementation group: 'net.uptheinter', name: 'interceptify', version: '1.2.0'
     implementation group: 'jakarta.json', name: 'jakarta.json-api', version: '2.0.0'
     implementation group: 'jakarta.json.bind', name: 'jakarta.json.bind-api', version: '2.0.0'
     implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '3.0.1'
     runtimeOnly group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '3.0.2'
     runtimeOnly group: 'org.eclipse', name: 'yasson', version: '2.0.4'
-    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:win"
-    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:linux"
-    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:mac"
+    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version:win"
+    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version:linux"
+    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version:mac"
 
     compileOnly files(PZGameFolder)
     devOnly files(
