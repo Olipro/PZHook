@@ -1,5 +1,6 @@
 package ZomboidJavaHook.config;
 
+import ZomboidJavaHook.PublicClassRegistry;
 import ZomboidJavaHook.zomboid.SteamWorkshop;
 import net.uptheinter.interceptify.interfaces.StartupConfig;
 import net.uptheinter.interceptify.internal.RuntimeHook;
@@ -25,11 +26,11 @@ public class HookConfig implements StartupConfig {
     private boolean userCancelled;
     private boolean rememberNextTime;
 
-    public HookConfig(boolean skipInit) {
+    public HookConfig(boolean skipInit) throws IOException {
         mods = skipInit ? new HashSet<>() : initMods();
     }
 
-    public HookConfig() throws ClassNotFoundException {
+    public HookConfig() throws IOException {
         mods = initMods();
     }
 
@@ -92,7 +93,7 @@ public class HookConfig implements StartupConfig {
         return new ModData(name, javaDir);
     }
 
-    private Set<ModData> initMods() {
+    private Set<ModData> initMods() throws IOException {
         final var mods = new HashSet<ModData>();
         try (final var steamWorkshop = new SteamWorkshop()) {
             Arrays.stream(steamWorkshop.getInstalledItemFolders())
@@ -123,6 +124,8 @@ public class HookConfig implements StartupConfig {
                     .forEach(mods::add);
         } catch (Exception e) {
             Util.DebugError(e);
+            if (e instanceof IOException)
+                throw (IOException) e;
         }
         return mods;
     }
@@ -133,7 +136,7 @@ public class HookConfig implements StartupConfig {
 
     @Override
     public boolean shouldMakePublic(String cls) {
-        return cls.startsWith("zombie");
+        return PublicClassRegistry.anyMatch(cls);
     }
 
     @Override

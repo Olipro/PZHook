@@ -47,8 +47,10 @@ public class HookInstaller {
         try (var strm = new FileInputStream(file)) {
             json = jsonb.fromJson(strm, ZomboidJson.class);
             json.mainClass = Main.class.getName().replace('.', '/');
+            json.classpath = json.classpath.stream().filter(s -> !s.contains(self.getName())).collect(Collectors.toList());
             json.vmArgs = json.vmArgs.stream().filter(s -> !s.contains("-javaagent:")).collect(Collectors.toList());
             json.vmArgs.add("-javaagent:" + self.getName());
+            json.classpath.add(self.getName());
         }
         var dir = file.toPath().getParent();
         var newName = file.getName().replace(".json", ".site.json");

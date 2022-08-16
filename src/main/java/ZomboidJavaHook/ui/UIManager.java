@@ -56,7 +56,7 @@ Project Zomboid Java Hook:
         }
         try {
             cfg = new HookConfig();
-        } catch (ClassNotFoundException e) {
+        } catch (IOException e) {
             // not running from game dir, no problem.
         }
         if (cfg != null && (listArgs.contains("--i-trust-all-mods") ||

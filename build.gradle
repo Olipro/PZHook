@@ -43,18 +43,19 @@ compileJava {
 }
 
 dependencies {
-    implementation group: 'net.uptheinter', name: 'interceptify', version: '1.2.0'
+    implementation group: 'net.uptheinter', name: 'interceptify', version: '1.2.3'
     implementation group: 'jakarta.json', name: 'jakarta.json-api', version: '2.0.0'
     implementation group: 'jakarta.json.bind', name: 'jakarta.json.bind-api', version: '2.0.0'
     implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '3.0.1'
     runtimeOnly group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '3.0.2'
     runtimeOnly group: 'org.eclipse', name: 'yasson', version: '2.0.4'
-    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version:win"
-    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version:linux"
-    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version:mac"
+    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version", classifier: 'win'
+    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version", classifier: 'linux'
+    runtimeOnly group: 'org.openjfx', name: 'javafx-graphics', version: "$javafx.version", 'classifier': 'mac'
 
     compileOnly files(PZGameFolder)
     devOnly files(
+            PZGameFolder + "commons-compress-1.18.jar",
             PZGameFolder + "istack-commons-runtime.jar",
             PZGameFolder + "jassimp.jar",
             PZGameFolder + "javacord-2.0.17-shaded.jar",
@@ -104,13 +105,20 @@ application {
                                  "-Dzomboid.znetlog=1",
                                  "-Djava.library.path=win64/;.",
                                  "-XX:+UseZGC",
-                                 "-javaagent:" + jar.archiveFileName.get(),
+                                 "-javaagent:" + jar.archiveFile.get().asFile.absolutePath + "=15",
     ]
 }
 
+task copyToGameDir(group: 'build', type: Copy) {
+    from jar
+    into PZGameFolder
+}
+
 tasks.run {
+    dependsOn += tasks.copyToGameDir
     classpath += files(PZGameFolder)
     classpath += configurations.devOnly
+    args = ['-debug']
 }
 
 task deljpackage(type: Delete, group: 'distribution') {

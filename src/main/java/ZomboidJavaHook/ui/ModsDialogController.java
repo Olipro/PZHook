@@ -43,7 +43,6 @@ public class ModsDialogController extends DialogControllerBase {
                     ++uncheckedCount;
                 items.add(checkBox);
             });
-        //for (int i = 0; i < 50; ++i) items.add(new CheckBox("testing"));
         rememberChoices.setDisable(uncheckedCount != 0);
         toolTip.setOpacity(uncheckedCount != 0 ? 1 : 0);
         this.cfg = cfg;

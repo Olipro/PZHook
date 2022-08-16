@@ -29,7 +29,7 @@ public class GameCodePubliciser implements AutoCloseable {
         file = new FileOutputStream(Path.of("", "zombie.jar").toFile());
         jar = new JarOutputStream(file);
         var fakeInstr = new FakeInstrumentation();
-        EntryPoint.premain("", fakeInstr);
+        EntryPoint.premain("15", fakeInstr);
         RuntimeHook.init(new HookConfig(true));
         transformer = fakeInstr.getTransformer();
     }
@@ -38,6 +38,12 @@ public class GameCodePubliciser implements AutoCloseable {
         Files.walk(codeDir)
                 .map(Path::toFile)
                 .filter(file -> file.getName().endsWith(".class"))
+                .filter(file -> !file.getName().contains("$"))
+                .forEach(this::addClassFile);
+        Files.walk(codeDir)
+                .map(Path::toFile)
+                .filter(file -> file.getName().endsWith(".class"))
+                .filter(file -> file.getName().contains("$"))
                 .forEach(this::addClassFile);
         System.out.println("Done. you can find the file in the game directory with the name zombie.jar");
     }
