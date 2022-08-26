@@ -22,16 +22,24 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class HookConfig implements StartupConfig {
+    public static final String clientMain = "zombie.gameStates.MainScreenState";
+    public static final String serverMain = "zombie.network.GameServer";
     private final Set<ModData> mods;
+    private final String realMain;
     private boolean userCancelled;
     private boolean rememberNextTime;
 
-    public HookConfig(boolean skipInit) throws IOException {
+    public HookConfig(String realMain, boolean skipInit) throws IOException {
         mods = skipInit ? new HashSet<>() : initMods();
+        this.realMain = realMain;
     }
 
-    public HookConfig() throws IOException {
-        mods = initMods();
+    public HookConfig(boolean skipInit) throws IOException {
+        this(clientMain, skipInit);
+    }
+
+    public HookConfig(String realMain) throws IOException {
+        this(realMain, false);
     }
 
     public boolean isUserCancelled() {
@@ -41,7 +49,7 @@ public class HookConfig implements StartupConfig {
     @Override
     public Consumer<String[]> getRealMain() {
         try {
-            var main = Class.forName("zombie.gameStates.MainScreenState")
+            var main = Class.forName(realMain)
                     .getDeclaredMethod("main", String[].class);
             return args -> {
                 try {
@@ -59,12 +67,14 @@ public class HookConfig implements StartupConfig {
     public List<URL> getClasspaths() {
         try {
             var allJarFiles = StartupConfig.super.getClasspaths();
-            Files.walk(Path.of(""), 1)
-                    .filter(f -> f.toFile().getName().endsWith(".jar"))
-                    .map(Path::toAbsolutePath)
-                    .map(Util::toURL)
-                    .forEach(allJarFiles::add);
-            allJarFiles.add(Util.toURL(Paths.get("").toAbsolutePath()));
+            Path cwd = Path.of("");
+            try (var root = Files.walk(cwd, 1)) {
+                root.filter(f -> f.toFile().getName().endsWith(".jar"))
+                        .map(Path::toAbsolutePath)
+                        .map(Util::toURL)
+                        .forEach(allJarFiles::add);
+            }
+            allJarFiles.add(Util.toURL(cwd.toAbsolutePath()));
             allJarFiles.add(RuntimeHook.class.getProtectionDomain().getCodeSource().getLocation());
             return allJarFiles;
         } catch (IOException e) {

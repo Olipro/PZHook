@@ -14,7 +14,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.uptheinter.interceptify.EntryPoint;
-import net.uptheinter.interceptify.internal.RuntimeHook;
 import net.uptheinter.interceptify.util.Util;
 
 import java.io.IOException;
@@ -23,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class UIManager extends Application {
@@ -33,18 +33,35 @@ public class UIManager extends Application {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         var listArgs = Arrays.asList(args);
-        if (listArgs.contains("--help")) {
+        if (listArgs.contains("--help") || listArgs.contains("-h")) {
             System.out.println(
 """
 Project Zomboid Java Hook:
 --i-trust-all-mods : loads any Java it finds and runs completely silently.
-                     Intended for servers and the foolhardy.
+                     Intended for servers and the foolhardy. You CANNOT use
+                     this option while also using the --mods option; --mods
+                     will take precedence.
+--mods mod1;mod2   : Specifies a list of mod names to automatically trust. This
+                     offers no real benefit over the previous option unless you
+                     are worried about someone slipping some java into other
+                     mods on the server - which you are still not safe from if
+                     the attacker knows any mods named in this argument.
+                     You MUST encase the mod list in quotes in your shell script
+                     if any of them have a space in their name.
 --make-public      : Modifies all classes, interfaces and enums in the game
                      to have public, non-final visibility, dumps them into
                      the file zombie.jar and terminates - This is intended for
                      use in your own project, if you need it. The hook modifies
                      all classes at runtime to be public so it will match what
                      you code against.
+--server           : Instead of executing the usual main function for the
+                     client version of the game, it will instead execute
+                     zombie.network.gameServer/main.
+--main my.Main     : Allows you to specify any java class to execute as the
+                     real main function after code hooking has completed.
+                     Useful if you intend to call your own main before the
+                     game's and saves you from having to hook zomboid's main.
+                     This argument supersedes --server.
 --help             : prints this help message and terminates""");
             return;
         }
@@ -55,21 +72,31 @@ Project Zomboid Java Hook:
             return;
         }
         try {
-            cfg = new HookConfig();
+            cfg = new HookConfig(listArgs.contains("--main") ? listArgs.get(listArgs.indexOf("--main") + 1)
+                                                             : listArgs.contains("--server") ? HookConfig.serverMain
+                                                                                             : HookConfig.clientMain);
         } catch (IOException e) {
             // not running from game dir, no problem.
         }
-        if (cfg != null && (listArgs.contains("--i-trust-all-mods") ||
-                (Files.exists(TrustedDigests.trustDir.resolve(skipCheck)) &&
-                        TrustedDigests.transaction(td -> cfg.getMods().stream()
-                                .map(ModData::getJarDir)
-                                .allMatch(td::isTrusted))
-                )
-        )) {
-            cfg.getMods().forEach(mod -> mod.setEnabled(true));
+        if (cfg != null) {
+            var modArg = listArgs.indexOf("--mods");
+            if (modArg++ != -1) {
+                var toEnable = Set.of(listArgs.get(modArg).split(";"));
+                cfg.getMods().stream()
+                        .filter(mod -> toEnable.contains(mod.getModName()))
+                        .forEach(mod -> mod.setEnabled(true));
+            } else if (listArgs.contains("--i-trust-all-mods") ||
+                    (Files.exists(TrustedDigests.trustDir.resolve(skipCheck)) &&
+                            TrustedDigests.transaction(td -> cfg.getMods().stream()
+                                    .map(ModData::getJarDir)
+                                    .allMatch(td::isTrusted))
+                    )) {
+                cfg.getMods().forEach(mod -> mod.setEnabled(true));
+            } else
+                launch();
         } else
             launch();
-        if (!cfg.isUserCancelled())
+        if (cfg != null && !cfg.isUserCancelled())
             EntryPoint.entryPoint(cfg, args);
     }
 

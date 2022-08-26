@@ -25,6 +25,10 @@ If you know what you're doing, all that is required is the following:
 3. Edit JVM args (again, either in your launch script or JSON files) from `zombie.gameStates.MainScreenState` to `ZomboidJavaHook.Main`
 4. If you're on windows, and want to continue using the EXE files to launch the game, you'll need to also patch them. If that's not something you know how to do, manual installation is not for you.
 
+## Servers
+
+You can pass `--help` to the PZHook JAR file for a list of options. At a minimum you will want `--server`
+
 ## Developers
 
 After you have created your JAR file with its code, it will need to be placed inside a folder called `java` which should be right beside the `media` folder of your workshop mod.
@@ -32,6 +36,8 @@ After you have created your JAR file with its code, it will need to be placed in
 Your library can freely import any in-game class file without causing classloader issues as all class mutations are performed prior to them being introduced into the JVM state.
 
 Since Java Modules aren't used, you can quite freely use reflection and `setAccessible()` to get at anything that's not `public`.
+
+Be wary of which classes (if any) that you tell PZHook to expose as public: It may result in the game getting stuck at boot if it impacts how Kahlua exposes the class. As ever, test it and find out.
 
 ### Caveats
 
